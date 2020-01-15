@@ -17,11 +17,15 @@ module RDStation
     end
 
     def retry_possible?(authorization)
-      [
-        RDStation.configuration&.client_id,
-        RDStation.configuration&.client_secret,
-        authorization.refresh_token
-      ].all?
+      unless RDStation.configuration.nil?
+        [
+          RDStation.configuration.client_id,
+          RDStation.configuration.client_secret,
+          authorization.refresh_token
+        ].all?
+      else
+        false
+      end
     end
 
     def refresh_access_token(authorization)
@@ -29,7 +33,8 @@ module RDStation
       response = client.update_access_token(authorization.refresh_token)
       authorization.access_token = response['access_token']
       authorization.access_token_expires_in = response['expires_in']
-      RDStation.configuration&.access_token_refresh_callback&.call(authorization)
+      #RDStation.configuration&.access_token_refresh_callback&.call(authorization)
+      RDStation.configuration.access_token_refresh_callback.call(authorization) if !RDStation.configuration.nil? && !RDStation.configuration.access_token_refresh_callback.nil?
     end
   end
 end
